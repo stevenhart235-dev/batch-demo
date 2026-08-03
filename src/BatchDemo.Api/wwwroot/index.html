@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Batch Processing Demo</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header><div><span class="eyebrow">OPERATOR PORTAL</span><h1>Batch Processing Demo</h1><p>Submit payment instructions and review exactly what is ready or needs correction.</p></div></header>
+  <main>
+    <section class="card" id="upload-panel">
+      <div class="section-heading"><div><span class="step">01</span><h2>Submit a merchant batch</h2></div><button id="reset" class="secondary hidden" type="button">Upload another batch</button></div>
+      <form id="upload-form">
+        <label>Merchant ID<input id="merchant-id" name="merchantId" required maxlength="200" autocomplete="off"></label>
+        <label>CSV file<input id="file" name="file" type="file" accept=".csv,text/csv" required></label>
+        <button id="upload-button" type="submit">Upload and process</button>
+      </form>
+      <div id="message" class="message hidden" role="alert"></div>
+    </section>
+    <section class="card hidden" id="batch-panel" aria-live="polite">
+      <div class="section-heading"><div><span class="step">02</span><h2>Batch status</h2></div><span id="status-badge" class="status"></span></div>
+      <dl id="batch-details"></dl><p id="status-description"></p>
+    </section>
+    <section class="hidden" id="result-panel">
+      <div class="metrics" id="metrics"></div>
+      <section class="card"><h2>Accepted instructions</h2><p class="muted">Validated canonical intent, ready for a future adapter.</p><div class="table-wrap"><table><thead><tr><th>Source row</th><th>Merchant reference</th><th>Operation</th><th>Amount</th><th>Currency</th><th>Execution date</th><th>Original authorization</th></tr></thead><tbody id="accepted-body"></tbody></table></div><p id="accepted-empty" class="empty hidden">No accepted instructions.</p></section>
+      <section class="card"><h2>Instructions requiring correction</h2><div class="table-wrap"><table><thead><tr><th>Source row</th><th>Merchant reference</th><th>Code</th><th>Reason</th><th>Field</th><th>Original row content</th></tr></thead><tbody id="rejected-body"></tbody></table></div><p id="rejected-empty" class="empty hidden">No rejected instructions.</p></section>
+      <section class="card"><h2>Batch summary</h2><dl id="summary-details"></dl><div id="file-reasons"></div></section>
+    </section>
+  </main>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

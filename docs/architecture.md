@@ -3,7 +3,7 @@
 ## Initial components
 
 - **ASP.NET Core application/API:** accepts one CSV upload, creates the batch,
-  and serves batch status and results.
+  serves batch status and batch-scoped results, and hosts the static portal.
 - **PostgreSQL:** owns batch/row operational state and queued work.
 - **S3-compatible object storage:** owns immutable originals and generated
   normalized artifacts.
@@ -57,6 +57,16 @@ See the [intake implementation note](intake-implementation.md).
    PostgreSQL.
 6. The API reads PostgreSQL for status and summary and exposes result details or
    artifact references for display.
+
+## Portal result-read boundary
+
+The browser polls batch status, then requests `GET /api/batches/{batchId}/results`.
+The application loads the batch from PostgreSQL, resolves only its persisted
+artifact keys, parses the known JSONL/JSON schemas, and maps a portal response.
+No endpoint accepts a client-supplied object key. The projection omits payment
+credential reference values and object-storage credentials. Duplicate and
+processing-failed batches require no artifact reads; incomplete or unavailable
+artifact sets return a controlled conflict.
 
 ## Ownership and boundaries
 

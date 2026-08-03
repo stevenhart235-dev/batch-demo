@@ -36,8 +36,37 @@ public sealed class BatchProcessingIntegrationTests(IntegrationFixture fixture)
         Assert.True(batch.ProcessingCompletedAt >= batch.ProcessingStartedAt);
         using var apiJson = JsonDocument.Parse(await fixture.CreateClient().GetStringAsync($"/api/batches/{batchId:D}"));
         Assert.Equal(batch.ProcessingCompletedAt, apiJson.RootElement.GetProperty("processingCompletedAt").GetDateTimeOffset());
+        var portalJson = await fixture.CreateClient().GetStringAsync($"/api/batches/{batchId:D}/results");
+        using var portal = JsonDocument.Parse(portalJson);
+        Assert.Equal(6, portal.RootElement.GetProperty("accepted").GetArrayLength());
+        Assert.Equal(4, portal.RootElement.GetProperty("rejected").GetArrayLength());
+        Assert.Contains("credentialReferencePresent", portalJson);
+        Assert.DoesNotContain("paymentCredentialReference", portalJson, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("tok_demo_", portalJson, StringComparison.OrdinalIgnoreCase);
         Assert.All(JsonLines(accepted), x => { Assert.True(x.RootElement.TryGetProperty("sourceRowNumber", out _)); Assert.True(x.RootElement.TryGetProperty("originalRowContent", out _)); });
         Assert.All(JsonLines(rejected), x => Assert.True(x.RootElement.GetProperty("reasons").GetArrayLength() > 0));
+    }
+
+    [Fact]
+    public async Task Results_endpoint_controls_incomplete_missing_and_structural_results()
+    {
+        var incomplete = await Upload("merchant_reference,operation,amount,currency,payment_credential_reference\nA,Purchase,1,USD,tok\n"u8.ToArray());
+        Assert.Equal(System.Net.HttpStatusCode.Conflict,
+            (await fixture.CreateClient().GetAsync($"/api/batches/{incomplete:D}/results")).StatusCode);
+        await Process((await Claim($"cleanup-{Guid.NewGuid():N}"))!);
+        Assert.Equal(System.Net.HttpStatusCode.NotFound,
+            (await fixture.CreateClient().GetAsync($"/api/batches/{Guid.NewGuid():D}/results")).StatusCode);
+
+        var structural = await Upload("merchant_reference,amount\nA,1.00\n"u8.ToArray());
+        await Process((await Claim($"structural-{Guid.NewGuid():N}"))!);
+        using var result = JsonDocument.Parse(await fixture.CreateClient().GetStringAsync($"/api/batches/{structural:D}/results"));
+        Assert.Equal("Rejected", result.RootElement.GetProperty("status").GetString());
+        Assert.Equal(0, result.RootElement.GetProperty("acceptedRows").GetInt32());
+        Assert.Equal(0, result.RootElement.GetProperty("rejectedRows").GetInt32());
+        Assert.True(result.RootElement.GetProperty("fileRejectionReasons").GetArrayLength() > 0);
+        var rejection = result.RootElement.GetProperty("rejected")[0];
+        Assert.Equal(JsonValueKind.Null, rejection.GetProperty("sourceRowNumber").ValueKind);
+        Assert.Equal(JsonValueKind.Null, rejection.GetProperty("merchantReference").ValueKind);
     }
 
     [Theory]

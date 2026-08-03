@@ -6,7 +6,8 @@ namespace BatchDemo.Api.Controllers;
 
 [ApiController]
 [Route("api/batches")]
-public sealed class BatchesController(BatchIntakeService intakeService, BatchQueryService queryService) : ControllerBase
+public sealed class BatchesController(BatchIntakeService intakeService, BatchQueryService queryService,
+    BatchResultService resultService) : ControllerBase
 {
     [HttpPost]
     [Consumes("multipart/form-data")]
@@ -48,5 +49,27 @@ public sealed class BatchesController(BatchIntakeService intakeService, BatchQue
         var statusUrl = Url.ActionLink(nameof(Get), values: new { batchId })
             ?? $"/api/batches/{batchId:D}";
         return Ok(BatchResponse.From(result, statusUrl));
+    }
+
+    [HttpGet("{batchId:guid}/results")]
+    [ProducesResponseType<BatchPortalResult>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<BatchPortalResult>> GetResults(Guid batchId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var result = await resultService.FindAsync(batchId, cancellationToken);
+            return result is null ? NotFound() : Ok(result);
+        }
+        catch (BatchResultUnavailableException exception)
+        {
+            return Conflict(new ProblemDetails
+            {
+                Title = "Batch results unavailable",
+                Detail = exception.Message,
+                Status = StatusCodes.Status409Conflict
+            });
+        }
     }
 }

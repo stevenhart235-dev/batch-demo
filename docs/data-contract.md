@@ -152,6 +152,26 @@ Summary JSON:
 
 ## Explicit provisional assumptions
 
+## Portal result projection
+
+`GET /api/batches/{batchId}/results` returns camelCase JSON with batch fields
+`batchId`, `merchantId`, `originalFilename`, `originalSha256`, `status`,
+`canonicalBatchId`, `receivedAt`, and `processingCompletedAt`; count fields
+`totalRows`, `acceptedRows`, and `rejectedRows`; arrays `accepted`, `rejected`,
+and `fileRejectionReasons`; timestamps `ingestedAt` and `artifactGeneratedAt`;
+and the `artifacts` object. Duplicate and processing-failed results use null
+counts/timestamps/artifacts and empty arrays where no artifacts exist.
+
+Accepted items expose `sourceRowNumber`, `merchantReference`, `operation`,
+`amountMinor`, `currency`, `originalAuthorizationReference`,
+`requestedExecutionDate`, and `credentialReferencePresent`. They never expose
+`paymentCredentialReference`. Rejected items expose `sourceRowNumber`,
+`merchantReference`, `originalRowContent`, and `reasons`; the credential column
+in row content is replaced with `[credential redacted]`, and file-level content
+is not projected. This portal-safe projection does not change stored artifacts.
+
+## Explicit provisional assumptions
+
 - Merchant identity is supplied by trusted API context because authentication is
   outside this slice; it is not a CSV column.
 - `Purchase` and `Refund` are the only initial operations. A refund requires an

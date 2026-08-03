@@ -14,7 +14,7 @@
 - [x] Produce normalized valid-row, rejected-row, and summary artifacts with
   provenance.
 - [x] Add batch intake and processing results to `GET /api/batches/{batchId}`.
-- [ ] Add a minimal result display.
+- [x] Add a minimal operator portal and credential-free result display.
 - [x] Test valid, invalid, duplicate, retry, concurrency, lease recovery, and
   partial-artifact finalization paths.
 - [x] Document local startup and an end-to-end demo using the sample CSV.

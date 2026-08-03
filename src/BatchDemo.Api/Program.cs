@@ -18,9 +18,13 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<BatchIntakeService>();
 builder.Services.AddScoped<BatchQueryService>();
+builder.Services.AddScoped<BatchResultService>();
 builder.Services.AddBatchDemoInfrastructure(builder.Configuration);
 
 var app = builder.Build();
+
+app.UseDefaultFiles();
+app.UseStaticFiles();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

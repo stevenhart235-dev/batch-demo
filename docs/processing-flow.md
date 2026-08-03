@@ -85,6 +85,15 @@ exactly once to accepted or rejected JSONL. Mixed results are
 - Artifact final keys are deterministic by batch. Database completion references
   only a complete, correlated artifact set.
 
+## Portal result read
+
+The portal polls `GET /api/batches/{batchId}` until any terminal status, then
+uses `GET /api/batches/{batchId}/results`. The API resolves artifact keys only
+from the persisted batch and returns a projection without credential-reference
+values. `ProcessingFailed` and `Duplicate` return terminal metadata without
+requiring artifacts; a duplicate includes its canonical batch ID when known. A
+received batch or a missing/unreadable terminal artifact set returns `409 Conflict`.
+
 ## Artifact naming
 
 Keys use sanitized identifiers and never merchant-provided path segments except

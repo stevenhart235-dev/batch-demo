@@ -31,8 +31,8 @@ a future adapter boundary; it is not a processor-specific submission file.
 
 ## Executable vertical slice
 
-The implemented milestone exposes `POST /api/batches` and
-`GET /api/batches/{batchId}`. Intake streams exact uploaded bytes to immutable
+The implemented milestone exposes a browser portal at `/`, `POST /api/batches`,
+`GET /api/batches/{batchId}`, and `GET /api/batches/{batchId}/results`. Intake streams exact uploaded bytes to immutable
 S3-compatible storage while calculating SHA-256, then transactionally records a
 `Received` batch and one `Pending` work item in PostgreSQL. An identical file for
 the same merchant is separately preserved and recorded as `Duplicate`, points to
@@ -40,7 +40,8 @@ the first canonical batch, and receives no work item.
 
 The worker now claims PostgreSQL work with a recoverable lease, validates and
 normalizes CSV rows, publishes accepted/rejected JSONL plus summary JSON, and
-persists final counts and status. Processor submission remains out of scope.
+persists final counts and status. The portal polls status and renders a
+credential-free projection of stored results. Processor submission remains out of scope.
 
 ## Local prerequisites
 
@@ -91,7 +92,26 @@ Health endpoints:
 - `GET /health/live` checks the API process.
 - `GET /health/ready` checks PostgreSQL and the configured object-storage bucket.
 
-## Upload examples
+## Browser demo
+
+With the API and worker running, open `http://localhost:5057`, keep the generated
+merchant ID (or enter one), select `samples/demo-merchant-batch.csv`, and choose
+**Upload and process**. The result is 10 total rows, 6 accepted, and 4 rejected.
+Use **Upload another batch** to reset the flow.
+
+```powershell
+# Shell 1: after copying/loading .env and migrating as shown above
+docker compose up -d
+dotnet run --project src/BatchDemo.Api --launch-profile http
+
+# Shell 2: load .env, then
+dotnet run --project src/BatchDemo.Worker
+
+# Open the portal
+Start-Process http://localhost:5057
+```
+
+## API upload examples
 
 With the API running, PowerShell:
 
@@ -140,6 +160,8 @@ dotnet test tests/BatchDemo.UnitTests/BatchDemo.UnitTests.csproj --no-build
 # Requires the Compose services and the unchanged local demo credentials.
 dotnet test tests/BatchDemo.IntegrationTests/BatchDemo.IntegrationTests.csproj --no-build
 
+node --test tests/portal/portal.test.mjs
+
 dotnet format BatchDemo.sln --verify-no-changes --no-restore
 ```
 
@@ -154,6 +176,7 @@ intentionally want to delete local PostgreSQL and MinIO volumes.
 - [Processing flow](docs/processing-flow.md)
 - [Intake implementation note](docs/intake-implementation.md)
 - [Processing implementation note](docs/processing-implementation.md)
+- [Portal implementation note](docs/portal-implementation.md)
 - [Backlog](docs/backlog.md)
 - [ADR 0001: Start with a single vertical slice](docs/adr/0001-start-with-single-vertical-slice.md)
 - [ADR 0002: Use S3-compatible object storage](docs/adr/0002-use-s3-compatible-object-storage.md)
