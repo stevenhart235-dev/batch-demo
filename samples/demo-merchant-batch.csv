@@ -1,0 +1,11 @@
+merchant_reference,operation,amount,currency,payment_credential_reference,original_authorization_reference,requested_execution_date
+DEMO-1001,Purchase,24.95,USD,tok_demo_alpha,,2026-08-05
+DEMO-1002,Purchase,110.00,eur,tok_demo_bravo,,
+DEMO-1003,Refund,8.50,GBP,tok_demo_charlie,auth_demo_1003,
+DEMO-1004,Purchase,72.10,USQ,tok_demo_delta,,
+,Purchase,19.99,USD,tok_demo_echo,,
+DEMO-1006,Purchase,twelve,USD,tok_demo_foxtrot,,
+DEMO-1007,Purchase,42.00,CAD,tok_demo_golf,,2026-08-06
+DEMO-1008,Purchase,63.25,USD,tok_demo_hotel,,
+DEMO-1008,Purchase,15.75,USD,tok_demo_india,,
+DEMO-1010,Refund,250.00,EUR,tok_demo_juliet,auth_demo_1010,2026-08-07
