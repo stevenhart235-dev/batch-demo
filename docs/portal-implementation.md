@@ -13,6 +13,13 @@ consecutive network/API failures stop with an actionable error. Terminal results
 show counts, tables, summary details, file-level reasons, and a reset action. A
 duplicate links to the canonical batch when its ID is available.
 
+The active batch is represented as `/?batchId={batchId}`. Uploads add it with
+`history.pushState`; initial load and `popstate` validate the GUID and restore
+status or terminal results from the API. Reset cancels active polling, removes
+the parameter without a reload, clears the view, and creates a new demo merchant
+ID. Each load has an abort controller and generation token, preventing an older
+request or timer from rendering over newer navigation state.
+
 ## Result boundary and safety
 
 `GET /api/batches/{batchId}/results` accepts only a batch ID. The application
